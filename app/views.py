@@ -5,9 +5,13 @@ Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file creates your application.
 """
 
-from app import app
-from flask import render_template, request, jsonify, send_file
+from app import app, db
+from app.forms import MovieForm
+from app.models import Movie
+from flask import render_template, request, jsonify, send_file, url_for, send_from_directory
+from werkzeug.utils import secure_filename
 import os
+from datetime import datetime
 
 
 ###
@@ -22,6 +26,29 @@ def index():
 ###
 # The functions below should be applicable to all Flask apps.
 ###
+
+@app.route('/api/v1/movies', methods=['POST'])
+def movies():
+    movie_form = MovieForm()
+    if movie_form.validate_on_submit():
+        title = movie_form.title.data
+        description = movie_form.description.data
+        poster = movie_form.poster.data
+        created_at = datetime.utcnow()
+        poster_filename = secure_filename(poster.filename)
+        poster.save(os.path.join(app.config['UPLOAD_FOLDER'], poster_filename))
+        new_movie = Movie(title, description, poster_filename, created_at)
+        db.session.add(new_movie)
+        db.session.commit()
+        movie_data = {
+            "message": "Movie successfully added",
+            "title": title,
+            "poster": url_for('getImage', filename=poster_filename),
+            "description": description
+        }
+        return jsonify(data=movie_data), 201
+    errors = form_errors(movie_form)
+    return jsonify(errors=errors), 400
 
 # Here we define a function to collect form errors from Flask-WTF
 # which we can later use
@@ -61,3 +88,8 @@ def add_header(response):
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
+
+
+
+def getImage(filename):
+    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
