@@ -3,7 +3,9 @@
     var success = ref("");
     var hasErrors = ref("");
     var errors = ref([]);
+
     let csrf_token = ref("");
+
     function getCsrfToken() {
         fetch('/api/v1/csrf-token')
         .then((response) => response.json())
@@ -12,6 +14,7 @@
             csrf_token.value = data.csrf_token;
         })
     }
+
     function saveMovie(){
         let movieForm = document.getElementById('movieForm');
         let form_data = new FormData(movieForm);
@@ -43,12 +46,14 @@
             console.log(error);
         });
     }
+
     function clearForm(){
         var inputs = document.querySelectorAll('input');
         var textArea = document.querySelectorAll('textarea');
         inputs.forEach(input =>  input.value = '');
         textArea.forEach(input =>  input.value = '');
     }
+
     onMounted(() => {
         clearForm();
         getCsrfToken();

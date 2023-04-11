@@ -24,10 +24,6 @@ def index():
     return jsonify(message="This is the beginning of our API")
 
 
-###
-# The functions below should be applicable to all Flask apps.
-###
-
 @app.route('/api/v1/movies', methods=['POST'])
 def movies():
     movie_form = MovieForm()
@@ -51,6 +47,7 @@ def movies():
     errors = form_errors(movie_form)
     return jsonify(errors=errors), 400
 
+
 @app.route('/api/v1/movies', methods=['GET'])
 def add_movies():
     movies = db.session.execute(db.select(Movie)).scalars()
@@ -62,7 +59,11 @@ def add_movies():
            "description": movie.description,
            "poster": url_for('getImage', filename=movie.poster)
         })
-    return jsonify(movies=movie_data)
+    return jsonify(movies=movie_data), 200
+
+###
+# The functions below should be applicable to all Flask apps.
+###
 
 # Here we define a function to collect form errors from Flask-WTF
 # which we can later use
@@ -106,7 +107,7 @@ def page_not_found(error):
 
 @app.route("/api/v1/posters/<filename>")
 def getImage(filename):
-     return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
 
 
 @app.route('/api/v1/csrf-token', methods=['GET'])

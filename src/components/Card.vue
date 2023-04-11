@@ -24,6 +24,7 @@
         padding-left: 0;
         width: 500px;
     }
+
     .card-text {
         font-size: small;
     }
