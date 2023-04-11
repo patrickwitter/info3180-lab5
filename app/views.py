@@ -10,6 +10,7 @@ from app.forms import MovieForm
 from app.models import Movie
 from flask import render_template, request, jsonify, send_file, url_for, send_from_directory
 from werkzeug.utils import secure_filename
+from flask_wtf.csrf import generate_csrf
 import os
 from datetime import datetime
 
@@ -49,6 +50,19 @@ def movies():
         return jsonify(data=movie_data), 201
     errors = form_errors(movie_form)
     return jsonify(errors=errors), 400
+
+@app.route('/api/v1/movies', methods=['GET'])
+def add_movies():
+    movies = db.session.execute(db.select(Movie)).scalars()
+    movie_data = []
+    for movie in movies:
+        movie_data.append({
+           "id": movie.id,
+           "title": movie.title,
+           "description": movie.description,
+           "poster": url_for('getImage', filename=movie.poster)
+        })
+    return jsonify(movies=movie_data)
 
 # Here we define a function to collect form errors from Flask-WTF
 # which we can later use
@@ -90,6 +104,11 @@ def page_not_found(error):
     return render_template('404.html'), 404
 
 
-
+@app.route("/api/v1/posters/<filename>")
 def getImage(filename):
-    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+     return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+
+
+@app.route('/api/v1/csrf-token', methods=['GET'])
+def get_csrf():
+    return jsonify({'csrf_token': generate_csrf()})
